@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青年大学习回顾</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            padding-bottom: 2rem;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4a6fa5, #2c4a76);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .back-btn {
+            display: inline-block;
+            margin-top: 1rem;
+            color: white;
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid white;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .back-btn:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .card h2 {
+            color: #2c4a76;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .episode-list {
+            list-style: none;
+        }
+        
+        .episode-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            border-left: 4px solid #4a6fa5;
+            transition: all 0.3s;
+        }
+        
+        .episode-item:hover {
+            background-color: #e8f4fd;
+            transform: translateX(5px);
+        }
+        
+        .episode-title {
+            font-weight: bold;
+            color: #2c4a76;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .episode-link {
+            color: #4a6fa5;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #4a6fa5;
+            transition: all 0.3s;
+        }
+        
+        .episode-link:hover {
+            background-color: #4a6fa5;
+            color: white;
+        }
+        
+        .current-link {
+            background-color: #ffd700;
+            padding: 1.5rem;
+            border-left: 4px solid #ff8c00;
+        }
+        
+        .current-link .episode-title {
+            color: #b8860b;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+            color: #4a6fa5;
+            margin-right: 0.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-graduation-cap icon"></i> 青年大学习回顾</h1>
+            <p class="subtitle">重温往期精彩内容，巩固学习成果</p>
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i> 返回首页</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-star icon"></i> 本期学习内容</h2>
+            <div class="episode-item current-link">
+                <div class="episode-title">🌟 学习链接请点击：</div>
+                <p>最新一期青年大学习内容，请点击下方链接查看：</p>
+                <a href="https://b23.tv/PnetsUF" class="episode-link" target="_blank">点击观看最新内容</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-history icon"></i> 往期回顾</h2>
+            <ul class="episode-list">
+                <li class="episode-item">
+                    <div class="episode-title">第一期：昔涟的生理小课堂 第五节</div>
+                    <p>生理知识科普，了解人体奥秘</p>
+                    <a href="https://b23.tv/DPXvpUJ" class="episode-link" target="_blank">观看视频</a>
+                </li>
+                <li class="episode-item">
+                    <div class="episode-title">第二期：一天"卤"2次算多吗？</div>
+                    <p>医学博士解答关于前列腺健康的疑问</p>
+                    <a href="https://b23.tv/C79SWmO" class="episode-link" target="_blank">观看视频</a>
+                </li>
+                <li class="episode-item">
+                    <div class="episode-title">第三期：5cm算短吗？如何从小丁丁到大锥锥</div>
+                    <p>医学博士解答关于生理发育的问题</p>
+                    <a href="https://b23.tv/l2Id621" class="episode-link" target="_blank">观看视频</a>
+                </li>
+                <li class="episode-item">
+                    <div class="episode-title">第四期：人类的睾丸被设计的有多脆弱？</div>
+                    <p>了解男性生理结构的奥秘</p>
+                    <a href="https://b23.tv/6WjYcua" class="episode-link" target="_blank">观看视频</a>
+                </li>
+                <li class="episode-item">
+                    <div class="episode-title">第五期：女性私处卫生与健康</div>
+                    <p>关于女性生理健康的科普知识</p>
+                    <a href="https://b23.tv/jGCGWJf" class="episode-link" target="_blank">观看视频</a>
+                </li>
+                <li class="episode-item">
+                    <div class="episode-title">第六期：欲望与健康的关系</div>
+                    <p">探索人类欲望与生理健康之间的联系</p>
+                    <a href="https://b23.tv/hSx2CHr" class="episode-link" target="_blank">观看视频</a>
+                </li>
+                <li class="episode-item">
+                    <div class="episode-title">第七期：射精机制的可调节性</div>
+                    <p>性知识科普：射精是个全或无的反射，但具有可调节性</p>
+                    <a href="https://b23.tv/9lmmmui" class="episode-link" target="_blank">观看视频</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 青年大学习平台. 保留所有权利.</p>
+            <p>学习青春，奋斗新时代</p>
+        </div>
+    </footer>
+</body>
+</html>
