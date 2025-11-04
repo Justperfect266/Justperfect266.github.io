@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>社区评论 - 青年大学习</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            padding-bottom: 2rem;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4a6fa5, #2c4a76);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .comment-form {
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c4a76;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            border-color: #4a6fa5;
+            outline: none;
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #2c4a76;
+            transform: translateY(-2px);
+        }
+        
+        .comment-list {
+            margin-top: 2rem;
+        }
+        
+        .comment {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem 0;
+            position: relative;
+        }
+        
+        .comment:last-child {
+            border-bottom: none;
+        }
+        
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        
+        .avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #4a6fa5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .username {
+            font-weight: bold;
+            color: #2c4a76;
+        }
+        
+        .comment-time {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .comment-content {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+        
+        .comment-actions {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .action-btn:hover {
+            color: #4a6fa5;
+        }
+        
+        .like-btn.liked {
+            color: #ff4757;
+        }
+        
+        .reply-form {
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .reply-form.active {
+            display: block;
+        }
+        
+        .replies {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            border-left: 2px solid #eee;
+            padding-left: 1.5rem;
+        }
+        
+        .reply {
+            padding: 1rem 0;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .reply:last-child {
+            border-bottom: none;
+        }
+        
+        .no-comments {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+            color: #4a6fa5;
+            margin-right: 0.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .replies {
+                margin-left: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-comments icon"></i> 社区评论</h1>
+            <p class="subtitle">分享学习心得，交流思想感悟</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <h2><i class="fas fa-edit icon"></i> 发表评论</h2>
+            <form class="comment-form" id="commentForm">
+                <div class="form-group">
+                    <label for="username">昵称</label>
+                    <input type="text" id="username" placeholder="请输入您的昵称" required>
+                </div>
+                <div class="form-group">
+                    <label for="comment">评论内容</label>
+                    <textarea id="comment" placeholder="请输入您的评论..." required></textarea>
+                </div>
+                <button type="submit" class="btn">发表评论</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-comment-dots icon"></i> 评论列表</h2>
+            <div class="comment-list" id="commentList">
+                <!-- 评论将通过JavaScript动态生成 -->
+                <div class="no-comments" id="noComments">
+                    <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; color: #ddd;"></i>
+                    <p>暂无评论，快来发表第一条评论吧！</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 青年大学习社区. 保留所有权利.</p>
+            <p>文明交流，理性发言</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从本地存储加载评论或初始化为空数组
+            let comments = JSON.parse(localStorage.getItem('communityComments')) || [];
+            
+            // 保存评论到本地存储
+            function saveComments() {
+                localStorage.setItem('communityComments', JSON.stringify(comments));
+            }
+            
+            // 渲染评论列表
+            function renderComments() {
+                const commentList = document.getElementById('commentList');
+                const noComments = document.getElementById('noComments');
+                
+                if (comments.length === 0) {
+                    noComments.style.display = 'block';
+                    return;
+                }
+                
+                noComments.style.display = 'none';
+                commentList.innerHTML = '';
+                
+                comments.forEach(comment => {
+                    const commentElement = createCommentElement(comment);
+                    commentList.appendChild(commentElement);
+                });
+            }
+            
+            // 创建评论元素
+            function createCommentElement(comment) {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                commentDiv.dataset.id = comment.id;
+                
+                // 生成头像
+                const avatarText = comment.username.substring(0, 2);
+                
+                // 格式化时间
+                const time = new Date(comment.time).toLocaleString();
+                
+                commentDiv.innerHTML = `
+                    <div class="comment-header">
+                        <div class="avatar">${avatarText}</div>
+                        <div class="user-info">
+                            <div class="username">${comment.username}</div>
+                            <div class="comment-time">${time}</div>
+                        </div>
+                    </div>
+                    <div class="comment-content">${comment.content}</div>
+                    <div class="comment-actions">
+                        <button class="action-btn like-btn ${comment.liked ? 'liked' : ''}" data-id="${comment.id}">
+                            <i class="fas fa-thumbs-up"></i> 点赞 <span class="like-count">${comment.likes}</span>
+                        </button>
+                        <button class="action-btn reply-btn" data-id="${comment.id}">
+                            <i class="fas fa-reply"></i> 回复
+                        </button>
+                    </div>
+                    <div class="reply-form" id="replyForm-${comment.id}">
+                        <div class="form-group">
+                            <input type="text" class="reply-username" placeholder="您的昵称" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea class="reply-content" placeholder="回复内容..." required></textarea>
+                        </div>
+                        <button class="btn submit-reply" data-id="${comment.id}">提交回复</button>
+                    </div>
+                    ${comment.replies && comment.replies.length > 0 ? `
+                        <div class="replies">
+                            ${comment.replies.map(reply => createReplyElement(reply)).join('')}
+                        </div>
+                    ` : ''}
+                `;
+                
+                return commentDiv;
+            }
+            
+            // 创建回复元素
+            function createReplyElement(reply) {
+                const avatarText = reply.username.substring(0, 2);
+                const time = new Date(reply.time).toLocaleString();
+                
+                return `
+                    <div class="reply" data-id="${reply.id}">
+                        <div class="comment-header">
+                            <div class="avatar" style="width: 35px; height: 35px; font-size: 0.8rem;">${avatarText}</div>
+                            <div class="user-info">
+                                <div class="username">${reply.username}</div>
+                                <div class="comment-time">${time}</div>
+                            </div>
+                        </div>
+                        <div class="comment-content">${reply.content}</div>
+                        <div class="comment-actions">
+                            <button class="action-btn like-btn ${reply.liked ? 'liked' : ''}" data-reply-id="${reply.id}">
+                                <i class="fas fa-thumbs-up"></i> 点赞 <span class="like-count">${reply.likes}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 处理发表评论
+            document.getElementById('commentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const content = document.getElementById('comment').value;
+                
+                if (!username || !content) {
+                    alert('请填写昵称和评论内容');
+                    return;
+                }
+                
+                const newComment = {
+                    id: Date.now(),
+                    username: username,
+                    content: content,
+                    time: new Date().toISOString(),
+                    likes: 0,
+                    replies: []
+                };
+                
+                comments.unshift(newComment);
+                saveComments();
+                renderComments();
+                
+                // 重置表单
+                document.getElementById('commentForm').reset();
+            });
+            
+            // 处理点赞
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.like-btn')) {
+                    const likeBtn = e.target.closest('.like-btn');
+                    const commentId = likeBtn.dataset.id;
+                    const replyId = likeBtn.dataset.replyId;
+                    
+                    if (replyId) {
+                        // 点赞回复
+                        const comment = comments.find(c => c.replies.some(r => r.id == replyId));
+                        if (comment) {
+                            const reply = comment.replies.find(r => r.id == replyId);
+                            if (reply) {
+                                if (!reply.liked) {
+                                    reply.liked = true;
+                                    reply.likes = (reply.likes || 0) + 1;
+                                } else {
+                                    reply.liked = false;
+                                    reply.likes = Math.max(0, (reply.likes || 0) - 1);
+                                }
+                                saveComments();
+                                renderComments();
+                            }
+                        }
+                    } else {
+                        // 点赞评论
+                        const comment = comments.find(c => c.id == commentId);
+                        if (comment) {
+                            if (!comment.liked) {
+                                comment.liked = true;
+                                comment.likes += 1;
+                            } else {
+                                comment.liked = false;
+                                comment.likes = Math.max(0, comment.likes - 1);
+                            }
+                            saveComments();
+                            renderComments();
+                        }
+                    }
+                }
+            });
+            
+            // 处理回复按钮点击
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.reply-btn')) {
+                    const replyBtn = e.target.closest('.reply-btn');
+                    const commentId = replyBtn.dataset.id;
+                    const replyForm = document.getElementById(`replyForm-${commentId}`);
+                    
+                    // 切换回复表单的显示状态
+                    replyForm.classList.toggle('active');
+                }
+            });
+            
+            // 处理提交回复
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.submit-reply')) {
+                    const submitBtn = e.target.closest('.submit-reply');
+                    const commentId = submitBtn.dataset.id;
+                    const replyForm = document.getElementById(`replyForm-${commentId}`);
+                    const usernameInput = replyForm.querySelector('.reply-username');
+                    const contentInput = replyForm.querySelector('.reply-content');
+                    
+                    const username = usernameInput.value;
+                    const content = contentInput.value;
+                    
+                    if (!username || !content) {
+                        alert('请填写昵称和回复内容');
+                        return;
+                    }
+                    
+                    const comment = comments.find(c => c.id == commentId);
+                    if (comment) {
+                        const newReply = {
+                            id: Date.now(),
+                            username: username,
+                            content: content,
+                            time: new Date().toISOString(),
+                            likes: 0
+                        };
+                        
+                        comment.replies.push(newReply);
+                        saveComments();
+                        renderComments();
+                        
+                        // 重置表单并隐藏
+                        usernameInput.value = '';
+                        contentInput.value = '';
+                        replyForm.classList.remove('active');
+                    }
+                }
+            });
+            
+            // 初始渲染
+            renderComments();
+        });
+    </script>
+</body>
+</html>

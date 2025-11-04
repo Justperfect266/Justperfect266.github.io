@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>青年大学习更新日历</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding-bottom: 2rem;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4a6fa5, #2c4a76);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 0 0 10px 10px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .calendar-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .nav-btn {
+            background: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #2c4a76;
+            transform: scale(1.1);
+        }
+        
+        .current-month {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c4a76;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        
+        .calendar-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 0.8rem 0;
+            color: #4a6fa5;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .calendar-day {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 1rem 0.5rem;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .calendar-day:hover {
+            background: #e8f4fd;
+            transform: translateY(-3px);
+        }
+        
+        .day-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .wednesday {
+            background: #e8f4fd;
+            border: 2px solid #4a6fa5;
+        }
+        
+        .wednesday .day-number {
+            color: #2c4a76;
+        }
+        
+        .update-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .upcoming-badge {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #4ecdc4;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .event-marker {
+            background: #4a6fa5;
+            color: white;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+        
+        .upcoming-marker {
+            background: #4ecdc4;
+            color: white;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+        
+        .other-month {
+            opacity: 0.4;
+        }
+        
+        .today {
+            background: #fff9e6;
+            border: 2px solid #ffc107;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .wednesday-legend {
+            background: #e8f4fd;
+            border: 2px solid #4a6fa5;
+        }
+        
+        .update-legend {
+            background: #ff6b6b;
+        }
+        
+        .upcoming-legend {
+            background: #4ecdc4;
+        }
+        
+        .today-legend {
+            background: #fff9e6;
+            border: 2px solid #ffc107;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #ddd;
+            color: #666;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+            color: #4a6fa5;
+            margin-right: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-grid {
+                gap: 5px;
+            }
+            
+            .calendar-day {
+                min-height: 80px;
+                padding: 0.5rem 0.2rem;
+            }
+            
+            .day-number {
+                font-size: 1rem;
+            }
+            
+            .current-month {
+                font-size: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .legend {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-calendar-alt icon"></i> 青年大学习更新日历</h1>
+            <p class="subtitle">每周三更新，敬请关注学习最新内容</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="card">
+            <div class="calendar-header">
+                <div class="calendar-nav">
+                    <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                    <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="current-month" id="current-month">2025年11月</div>
+                <button class="nav-btn" id="today-btn">今天</button>
+            </div>
+            
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- 表头和日期由JavaScript动态生成 -->
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color wednesday-legend"></div>
+                    <span>周三更新日</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color update-legend"></div>
+                    <span>已更新内容</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color upcoming-legend"></div>
+                    <span>未更新内容</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color today-legend"></div>
+                    <span>今天</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2><i class="fas fa-info-circle icon"></i> 使用说明</h2>
+            <p>本日历显示青年大学习的更新安排：</p>
+            <ul>
+                <li><strong>每周三</strong>为固定更新日，如有特殊情况另行通知</li>
+                <li>已发布内容的周三会有红色更新标记，未发布的会有青色预告标记</li>
+                <li>点击日期可以查看该日期的更新内容</li>
+                <li>平时会不定时出现番外更新的预告</li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 青年大学习平台. 保留所有权利.</p>
+            <p>学习青春，奋斗新时代</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+            
+            // 设置初始为2025年11月
+            currentMonth = 10; // 11月 (0-indexed)
+            currentYear = 2025;
+            
+            const monthNames = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+            // 修改表头为完整星期名称
+            const dayNames = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+            
+            // 区分已更新和未更新的日期
+            const publishedDates = [ // 已更新
+                '2025-10-29',
+                '2025-11-05'
+            ];
+            const upcomingDates = [ // 未更新（计划中）
+                '2025-11-12',
+                '2025-11-19',
+                '2025-11-26'
+            ];
+            
+            // 初始化日历
+            function initCalendar() {
+                renderCalendar(currentMonth, currentYear);
+                setupEventListeners();
+            }
+            
+            // 渲染日历
+            function renderCalendar(month, year) {
+                const calendarGrid = document.getElementById('calendar-grid');
+                const currentMonthElement = document.getElementById('current-month');
+                
+                // 更新月份显示
+                currentMonthElement.textContent = `${year}年${monthNames[month]}`;
+                
+                // 获取月份的第一天和最后一天
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                
+                // 获取第一天是星期几（0是星期日）
+                const firstDayIndex = firstDay.getDay();
+                
+                // 清空日历
+                calendarGrid.innerHTML = '';
+                
+                // 生成表头（使用完整星期名称）
+                for (let i = 0; i < 7; i++) {
+                    const header = document.createElement('div');
+                    header.className = 'calendar-day-header';
+                    header.textContent = dayNames[i]; // 直接使用完整名称
+                    calendarGrid.appendChild(header);
+                }
+                
+                // 添加上个月的天数
+                const prevMonthLastDay = new Date(year, month, 0).getDate();
+                for (let i = firstDayIndex; i > 0; i--) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day other-month';
+                    dayElement.innerHTML = `
+                        <div class="day-number">${prevMonthLastDay - i + 1}</div>
+                    `;
+                    calendarGrid.appendChild(dayElement);
+                }
+                
+                // 添加当前月的天数
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dayElement = document.createElement('div');
+                    const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const dayDate = new Date(year, month, i);
+                    const dayOfWeek = dayDate.getDay();
+                    
+                    let dayClasses = 'calendar-day';
+                    
+                    // 检查是否是周三
+                    if (dayOfWeek === 3) {
+                        dayClasses += ' wednesday';
+                    }
+                    
+                    // 检查是否是今天
+                    const today = new Date();
+                    if (dayDate.toDateString() === today.toDateString()) {
+                        dayClasses += ' today';
+                    }
+                    
+                    dayElement.className = dayClasses;
+                    
+                    let dayContent = `<div class="day-number">${i}</div>`;
+                    
+                    // 区分已更新和未更新状态
+                    if (dayOfWeek === 3) {
+                        if (publishedDates.includes(dateString)) {
+                            // 已更新
+                            dayContent += `<div class="update-badge"><i class="fas fa-check"></i></div>`;
+                            dayContent += `<div class="event-marker">已更新</div>`;
+                        } else if (upcomingDates.includes(dateString)) {
+                            // 未更新（计划中）
+                            dayContent += `<div class="upcoming-badge"><i class="fas fa-clock"></i></div>`;
+                            dayContent += `<div class="upcoming-marker">未更新</div>`;
+                        }
+                    }
+                    
+                    dayElement.innerHTML = dayContent;
+                    
+                    // 添加点击事件
+                    dayElement.addEventListener('click', function() {
+                        if (dayOfWeek === 3) {
+                            if (publishedDates.includes(dateString)) {
+                                alert(`青年大学习已更新，请前往学习页面学习`);
+                            } else if (upcomingDates.includes(dateString)) {
+                                alert(`青年大学习尚未更新，敬请期待`);
+                            } else {
+                                alert(`该天是青年大学习更新日，请关注后续通知`);
+                            }
+                        } else {
+                            alert(`该天暂无更新安排，请关注后续番外更新预告`);
+                        }
+                    });
+                    
+                    calendarGrid.appendChild(dayElement);
+                }
+                
+                // 添加下个月的天数（补齐42个格子）
+                const totalCells = 42; // 6行 x 7列
+                const daysSoFar = firstDayIndex + daysInMonth;
+                const nextMonthDays = totalCells - daysSoFar;
+                
+                for (let i = 1; i <= nextMonthDays; i++) {
+                    const dayElement = document.createElement('div');
+                    dayElement.className = 'calendar-day other-month';
+                    dayElement.innerHTML = `
+                        <div class="day-number">${i}</div>
+                    `;
+                    calendarGrid.appendChild(dayElement);
+                }
+            }
+            
+            // 设置事件监听器
+            function setupEventListeners() {
+                document.getElementById('prev-month').addEventListener('click', function() {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                    renderCalendar(currentMonth, currentYear);
+                });
+                
+                document.getElementById('next-month').addEventListener('click', function() {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                    renderCalendar(currentMonth, currentYear);
+                });
+                
+                document.getElementById('today-btn').addEventListener('click', function() {
+                    currentDate = new Date();
+                    currentMonth = currentDate.getMonth();
+                    currentYear = currentDate.getFullYear();
+                    renderCalendar(currentMonth, currentYear);
+                });
+            }
+            
+            // 初始化日历
+            initCalendar();
+        });
+    </script>
+</body>
+</html>
