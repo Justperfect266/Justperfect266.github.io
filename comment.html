@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>社区评论 - 青年大学习</title>
+    <title>社区评论 - 使用Firebase</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* 保持所有之前的CSS样式不变 */
         * {
             margin: 0;
             padding: 0;
@@ -225,6 +226,26 @@
             margin-right: 0.5rem;
         }
         
+        .firebase-status {
+            padding: 0.5rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .status-connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
         footer {
             text-align: center;
             margin-top: 2rem;
@@ -263,6 +284,9 @@
     <div class="container">
         <div class="card">
             <h2><i class="fas fa-edit icon"></i> 发表评论</h2>
+            <div id="firebaseStatus" class="firebase-status status-disconnected">
+                <i class="fas fa-sync fa-spin"></i> 正在连接数据库...
+            </div>
             <form class="comment-form" id="commentForm">
                 <div class="form-group">
                     <label for="username">昵称</label>
@@ -272,14 +296,13 @@
                     <label for="comment">评论内容</label>
                     <textarea id="comment" placeholder="请输入您的评论..." required></textarea>
                 </div>
-                <button type="submit" class="btn">发表评论</button>
+                <button type="submit" class="btn" id="submitBtn">发表评论</button>
             </form>
         </div>
         
         <div class="card">
             <h2><i class="fas fa-comment-dots icon"></i> 评论列表</h2>
             <div class="comment-list" id="commentList">
-                <!-- 评论将通过JavaScript动态生成 -->
                 <div class="no-comments" id="noComments">
                     <i class="fas fa-comment-slash" style="font-size: 3rem; margin-bottom: 1rem; color: #ddd;"></i>
                     <p>暂无评论，快来发表第一条评论吧！</p>
@@ -290,238 +313,423 @@
 
     <footer>
         <div class="container">
-            <p>&copy; 2025 青年大学习社区. 保留所有权利.</p>
-            <p>文明交流，理性发言</p>
+            <p>&copy; 2023 青年大学习社区. 保留所有权利.</p>
+            <p>数据使用Firebase存储，可在不同设备间同步</p>
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 从本地存储加载评论或初始化为空数组
-            let comments = JSON.parse(localStorage.getItem('communityComments')) || [];
-            
-            // 保存评论到本地存储
-            function saveComments() {
-                localStorage.setItem('communityComments', JSON.stringify(comments));
-            }
-            
-            // 渲染评论列表
-            function renderComments() {
-                const commentList = document.getElementById('commentList');
-                const noComments = document.getElementById('noComments');
+    <!-- Firebase SDK 使用模块化方式引入 -->
+    <script type="module">
+        // 导入 Firebase 功能
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            updateDoc, 
+            deleteDoc, 
+            doc, 
+            onSnapshot, 
+            query, 
+            orderBy, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // Firebase 配置 - 使用您提供的配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4-VYenDJZ13RRoXQgOlVMOOaYQdTriik",
+            authDomain: "youth-study-22503.firebaseapp.com",
+            projectId: "youth-study-22503",
+            storageBucket: "youth-study-22503.firebasestorage.app",
+            messagingSenderId: "723128549051",
+            appId: "1:723128549051:web:2dba7aa9ed6a9316a9339e",
+            measurementId: "G-QD2CZ450ZC"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // 更新连接状态
+        const firebaseStatus = document.getElementById('firebaseStatus');
+        firebaseStatus.innerHTML = '<i class="fas fa-check-circle"></i> 已连接到数据库';
+        firebaseStatus.className = 'firebase-status status-connected';
+        
+        // 从Firestore加载评论
+        async function loadComments() {
+            try {
+                const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
                 
-                if (comments.length === 0) {
-                    noComments.style.display = 'block';
-                    return;
-                }
-                
-                noComments.style.display = 'none';
-                commentList.innerHTML = '';
-                
-                comments.forEach(comment => {
-                    const commentElement = createCommentElement(comment);
-                    commentList.appendChild(commentElement);
+                const comments = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    comments.push({
+                        id: doc.id,
+                        username: data.username,
+                        content: data.content,
+                        time: data.timestamp.toDate().toISOString(),
+                        likes: data.likes || 0,
+                        liked: data.liked || false,
+                        replies: data.replies || []
+                    });
                 });
+                
+                return comments;
+            } catch (error) {
+                console.error("加载评论失败:", error);
+                // 如果Firebase失败，回退到本地存储
+                return JSON.parse(localStorage.getItem('communityComments')) || [];
+            }
+        }
+        
+        // 保存评论到Firestore
+        async function saveComment(comment) {
+            try {
+                // 将评论添加到Firestore
+                const docRef = await addDoc(collection(db, "comments"), {
+                    username: comment.username,
+                    content: comment.content,
+                    timestamp: serverTimestamp(),
+                    likes: comment.likes,
+                    liked: comment.liked,
+                    replies: comment.replies
+                });
+                
+                console.log("评论已保存，ID为:", docRef.id);
+                return docRef.id;
+            } catch (error) {
+                console.error("保存评论失败:", error);
+                // 如果Firebase失败，回退到本地存储
+                const comments = JSON.parse(localStorage.getItem('communityComments')) || [];
+                comment.id = Date.now().toString();
+                comments.unshift(comment);
+                localStorage.setItem('communityComments', JSON.stringify(comments));
+                return comment.id;
+            }
+        }
+        
+        // 更新评论（用于点赞和回复）
+        async function updateComment(commentId, updates) {
+            try {
+                const commentRef = doc(db, "comments", commentId);
+                await updateDoc(commentRef, updates);
+                return true;
+            } catch (error) {
+                console.error("更新评论失败:", error);
+                // 如果Firebase失败，回退到本地存储
+                const comments = JSON.parse(localStorage.getItem('communityComments')) || [];
+                const commentIndex = comments.findIndex(c => c.id === commentId);
+                if (commentIndex !== -1) {
+                    comments[commentIndex] = { ...comments[commentIndex], ...updates };
+                    localStorage.setItem('communityComments', JSON.stringify(comments));
+                }
+                return false;
+            }
+        }
+        
+        // 删除评论
+        async function deleteComment(commentId) {
+            try {
+                await deleteDoc(doc(db, "comments", commentId));
+                return true;
+            } catch (error) {
+                console.error("删除评论失败:", error);
+                // 如果Firebase失败，回退到本地存储
+                const comments = JSON.parse(localStorage.getItem('communityComments')) || [];
+                const filteredComments = comments.filter(c => c.id !== commentId);
+                localStorage.setItem('communityComments', JSON.stringify(filteredComments));
+                return false;
+            }
+        }
+        
+        // 实时监听评论变化
+        function setupRealtimeListener() {
+            const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
+            
+            return onSnapshot(q, (querySnapshot) => {
+                const comments = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    comments.push({
+                        id: doc.id,
+                        username: data.username,
+                        content: data.content,
+                        time: data.timestamp.toDate().toISOString(),
+                        likes: data.likes || 0,
+                        liked: data.liked || false,
+                        replies: data.replies || []
+                    });
+                });
+                
+                renderComments(comments);
+            }, (error) => {
+                console.error("实时监听失败:", error);
+                // 如果实时监听失败，回退到定期刷新
+                setTimeout(() => {
+                    initComments();
+                }, 5000);
+            });
+        }
+        
+        // 渲染评论列表
+        function renderComments(comments) {
+            const commentList = document.getElementById('commentList');
+            const noComments = document.getElementById('noComments');
+            
+            if (comments.length === 0) {
+                noComments.style.display = 'block';
+                commentList.innerHTML = '';
+                commentList.appendChild(noComments);
+                return;
             }
             
-            // 创建评论元素
-            function createCommentElement(comment) {
-                const commentDiv = document.createElement('div');
-                commentDiv.className = 'comment';
-                commentDiv.dataset.id = comment.id;
-                
-                // 生成头像
-                const avatarText = comment.username.substring(0, 2);
-                
-                // 格式化时间
-                const time = new Date(comment.time).toLocaleString();
-                
-                commentDiv.innerHTML = `
+            noComments.style.display = 'none';
+            commentList.innerHTML = '';
+            
+            comments.forEach(comment => {
+                const commentElement = createCommentElement(comment);
+                commentList.appendChild(commentElement);
+            });
+        }
+        
+        // 创建评论元素
+        function createCommentElement(comment) {
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment';
+            commentDiv.dataset.id = comment.id;
+            
+            // 生成头像
+            const avatarText = comment.username.substring(0, 2);
+            
+            // 格式化时间
+            const time = new Date(comment.time).toLocaleString();
+            
+            commentDiv.innerHTML = `
+                <div class="comment-header">
+                    <div class="avatar">${avatarText}</div>
+                    <div class="user-info">
+                        <div class="username">${comment.username}</div>
+                        <div class="comment-time">${time}</div>
+                    </div>
+                </div>
+                <div class="comment-content">${comment.content}</div>
+                <div class="comment-actions">
+                    <button class="action-btn like-btn ${comment.liked ? 'liked' : ''}" data-id="${comment.id}">
+                        <i class="fas fa-thumbs-up"></i> 点赞 <span class="like-count">${comment.likes}</span>
+                    </button>
+                    <button class="action-btn reply-btn" data-id="${comment.id}">
+                        <i class="fas fa-reply"></i> 回复
+                    </button>
+                    <button class="action-btn delete-btn" data-id="${comment.id}">
+                        <i class="fas fa-trash"></i> 删除
+                    </button>
+                </div>
+                <div class="reply-form" id="replyForm-${comment.id}">
+                    <div class="form-group">
+                        <input type="text" class="reply-username" placeholder="您的昵称" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="reply-content" placeholder="回复内容..." required></textarea>
+                    </div>
+                    <button class="btn submit-reply" data-id="${comment.id}">提交回复</button>
+                </div>
+                ${comment.replies && comment.replies.length > 0 ? `
+                    <div class="replies">
+                        ${comment.replies.map(reply => createReplyElement(reply)).join('')}
+                    </div>
+                ` : ''}
+            `;
+            
+            return commentDiv;
+        }
+        
+        // 创建回复元素
+        function createReplyElement(reply) {
+            const avatarText = reply.username.substring(0, 2);
+            const time = new Date(reply.time).toLocaleString();
+            
+            return `
+                <div class="reply" data-id="${reply.id}">
                     <div class="comment-header">
-                        <div class="avatar">${avatarText}</div>
+                        <div class="avatar" style="width: 35px; height: 35px; font-size: 0.8rem;">${avatarText}</div>
                         <div class="user-info">
-                            <div class="username">${comment.username}</div>
+                            <div class="username">${reply.username}</div>
                             <div class="comment-time">${time}</div>
                         </div>
                     </div>
-                    <div class="comment-content">${comment.content}</div>
+                    <div class="comment-content">${reply.content}</div>
                     <div class="comment-actions">
-                        <button class="action-btn like-btn ${comment.liked ? 'liked' : ''}" data-id="${comment.id}">
-                            <i class="fas fa-thumbs-up"></i> 点赞 <span class="like-count">${comment.likes}</span>
-                        </button>
-                        <button class="action-btn reply-btn" data-id="${comment.id}">
-                            <i class="fas fa-reply"></i> 回复
+                        <button class="action-btn like-btn ${reply.liked ? 'liked' : ''}" data-reply-id="${reply.id}">
+                            <i class="fas fa-thumbs-up"></i> 点赞 <span class="like-count">${reply.likes}</span>
                         </button>
                     </div>
-                    <div class="reply-form" id="replyForm-${comment.id}">
-                        <div class="form-group">
-                            <input type="text" class="reply-username" placeholder="您的昵称" required>
-                        </div>
-                        <div class="form-group">
-                            <textarea class="reply-content" placeholder="回复内容..." required></textarea>
-                        </div>
-                        <button class="btn submit-reply" data-id="${comment.id}">提交回复</button>
-                    </div>
-                    ${comment.replies && comment.replies.length > 0 ? `
-                        <div class="replies">
-                            ${comment.replies.map(reply => createReplyElement(reply)).join('')}
-                        </div>
-                    ` : ''}
-                `;
-                
-                return commentDiv;
+                </div>
+            `;
+        }
+        
+        // 处理发表评论
+        document.getElementById('commentForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const content = document.getElementById('comment').value;
+            
+            if (!username || !content) {
+                alert('请填写昵称和评论内容');
+                return;
             }
             
-            // 创建回复元素
-            function createReplyElement(reply) {
-                const avatarText = reply.username.substring(0, 2);
-                const time = new Date(reply.time).toLocaleString();
-                
-                return `
-                    <div class="reply" data-id="${reply.id}">
-                        <div class="comment-header">
-                            <div class="avatar" style="width: 35px; height: 35px; font-size: 0.8rem;">${avatarText}</div>
-                            <div class="user-info">
-                                <div class="username">${reply.username}</div>
-                                <div class="comment-time">${time}</div>
-                            </div>
-                        </div>
-                        <div class="comment-content">${reply.content}</div>
-                        <div class="comment-actions">
-                            <button class="action-btn like-btn ${reply.liked ? 'liked' : ''}" data-reply-id="${reply.id}">
-                                <i class="fas fa-thumbs-up"></i> 点赞 <span class="like-count">${reply.likes}</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 发布中...';
             
-            // 处理发表评论
-            document.getElementById('commentForm').addEventListener('submit', function(e) {
-                e.preventDefault();
+            const newComment = {
+                username: username,
+                content: content,
+                time: new Date().toISOString(),
+                likes: 0,
+                liked: false,
+                replies: []
+            };
+            
+            await saveComment(newComment);
+            
+            // 重置表单
+            document.getElementById('commentForm').reset();
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '发表评论';
+        });
+        
+        // 处理点赞
+        document.addEventListener('click', async function(e) {
+            if (e.target.closest('.like-btn')) {
+                const likeBtn = e.target.closest('.like-btn');
+                const commentId = likeBtn.dataset.id;
+                const replyId = likeBtn.dataset.replyId;
                 
-                const username = document.getElementById('username').value;
-                const content = document.getElementById('comment').value;
+                if (replyId) {
+                    // 点赞回复
+                    const comments = await loadComments();
+                    const comment = comments.find(c => c.replies.some(r => r.id == replyId));
+                    if (comment) {
+                        const reply = comment.replies.find(r => r.id == replyId);
+                        if (reply) {
+                            if (!reply.liked) {
+                                reply.liked = true;
+                                reply.likes = (reply.likes || 0) + 1;
+                            } else {
+                                reply.liked = false;
+                                reply.likes = Math.max(0, (reply.likes || 0) - 1);
+                            }
+                            
+                            // 更新整个评论，因为回复是评论的一个子数组
+                            await updateComment(comment.id, { replies: comment.replies });
+                        }
+                    }
+                } else {
+                    // 点赞评论
+                    const comments = await loadComments();
+                    const comment = comments.find(c => c.id == commentId);
+                    if (comment) {
+                        if (!comment.liked) {
+                            comment.liked = true;
+                            comment.likes += 1;
+                        } else {
+                            comment.liked = false;
+                            comment.likes = Math.max(0, comment.likes - 1);
+                        }
+                        await updateComment(commentId, { 
+                            likes: comment.likes,
+                            liked: comment.liked
+                        });
+                    }
+                }
+            }
+        });
+        
+        // 处理回复按钮点击
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.reply-btn')) {
+                const replyBtn = e.target.closest('.reply-btn');
+                const commentId = replyBtn.dataset.id;
+                const replyForm = document.getElementById(`replyForm-${commentId}`);
+                
+                // 切换回复表单的显示状态
+                replyForm.classList.toggle('active');
+            }
+        });
+        
+        // 处理提交回复
+        document.addEventListener('click', async function(e) {
+            if (e.target.closest('.submit-reply')) {
+                const submitBtn = e.target.closest('.submit-reply');
+                const commentId = submitBtn.dataset.id;
+                const replyForm = document.getElementById(`replyForm-${commentId}`);
+                const usernameInput = replyForm.querySelector('.reply-username');
+                const contentInput = replyForm.querySelector('.reply-content');
+                
+                const username = usernameInput.value;
+                const content = contentInput.value;
                 
                 if (!username || !content) {
-                    alert('请填写昵称和评论内容');
+                    alert('请填写昵称和回复内容');
                     return;
                 }
                 
-                const newComment = {
-                    id: Date.now(),
-                    username: username,
-                    content: content,
-                    time: new Date().toISOString(),
-                    likes: 0,
-                    replies: []
-                };
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 提交中...';
                 
-                comments.unshift(newComment);
-                saveComments();
-                renderComments();
+                const comments = await loadComments();
+                const comment = comments.find(c => c.id == commentId);
+                if (comment) {
+                    const newReply = {
+                        id: Date.now().toString(),
+                        username: username,
+                        content: content,
+                        time: new Date().toISOString(),
+                        likes: 0,
+                        liked: false
+                    };
+                    
+                    comment.replies.push(newReply);
+                    // 更新整个评论，因为回复是评论的一个子数组
+                    await updateComment(commentId, { replies: comment.replies });
+                    
+                    // 重置表单并隐藏
+                    usernameInput.value = '';
+                    contentInput.value = '';
+                    replyForm.classList.remove('active');
+                }
                 
-                // 重置表单
-                document.getElementById('commentForm').reset();
-            });
-            
-            // 处理点赞
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.like-btn')) {
-                    const likeBtn = e.target.closest('.like-btn');
-                    const commentId = likeBtn.dataset.id;
-                    const replyId = likeBtn.dataset.replyId;
-                    
-                    if (replyId) {
-                        // 点赞回复
-                        const comment = comments.find(c => c.replies.some(r => r.id == replyId));
-                        if (comment) {
-                            const reply = comment.replies.find(r => r.id == replyId);
-                            if (reply) {
-                                if (!reply.liked) {
-                                    reply.liked = true;
-                                    reply.likes = (reply.likes || 0) + 1;
-                                } else {
-                                    reply.liked = false;
-                                    reply.likes = Math.max(0, (reply.likes || 0) - 1);
-                                }
-                                saveComments();
-                                renderComments();
-                            }
-                        }
-                    } else {
-                        // 点赞评论
-                        const comment = comments.find(c => c.id == commentId);
-                        if (comment) {
-                            if (!comment.liked) {
-                                comment.liked = true;
-                                comment.likes += 1;
-                            } else {
-                                comment.liked = false;
-                                comment.likes = Math.max(0, comment.likes - 1);
-                            }
-                            saveComments();
-                            renderComments();
-                        }
-                    }
-                }
-            });
-            
-            // 处理回复按钮点击
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.reply-btn')) {
-                    const replyBtn = e.target.closest('.reply-btn');
-                    const commentId = replyBtn.dataset.id;
-                    const replyForm = document.getElementById(`replyForm-${commentId}`);
-                    
-                    // 切换回复表单的显示状态
-                    replyForm.classList.toggle('active');
-                }
-            });
-            
-            // 处理提交回复
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.submit-reply')) {
-                    const submitBtn = e.target.closest('.submit-reply');
-                    const commentId = submitBtn.dataset.id;
-                    const replyForm = document.getElementById(`replyForm-${commentId}`);
-                    const usernameInput = replyForm.querySelector('.reply-username');
-                    const contentInput = replyForm.querySelector('.reply-content');
-                    
-                    const username = usernameInput.value;
-                    const content = contentInput.value;
-                    
-                    if (!username || !content) {
-                        alert('请填写昵称和回复内容');
-                        return;
-                    }
-                    
-                    const comment = comments.find(c => c.id == commentId);
-                    if (comment) {
-                        const newReply = {
-                            id: Date.now(),
-                            username: username,
-                            content: content,
-                            time: new Date().toISOString(),
-                            likes: 0
-                        };
-                        
-                        comment.replies.push(newReply);
-                        saveComments();
-                        renderComments();
-                        
-                        // 重置表单并隐藏
-                        usernameInput.value = '';
-                        contentInput.value = '';
-                        replyForm.classList.remove('active');
-                    }
-                }
-            });
-            
-            // 初始渲染
-            renderComments();
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '提交回复';
+            }
         });
+        
+        // 处理删除评论
+        document.addEventListener('click', async function(e) {
+            if (e.target.closest('.delete-btn')) {
+                const deleteBtn = e.target.closest('.delete-btn');
+                const commentId = deleteBtn.dataset.id;
+                
+                if (confirm('确定要删除这条评论吗？')) {
+                    await deleteComment(commentId);
+                }
+            }
+        });
+        
+        // 初始化评论系统
+        async function initComments() {
+            const comments = await loadComments();
+            renderComments(comments);
+            
+            // 设置实时监听
+            setupRealtimeListener();
+        }
+        
+        // 初始渲染
+        initComments();
     </script>
 </body>
-
 </html>
