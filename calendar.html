@@ -290,7 +290,7 @@
     <header>
         <div class="container">
             <h1><i class="fas fa-calendar-alt icon"></i> 青年大学习更新日历</h1>
-            <p class="subtitle">每周三更新，敬请关注学习最新内容</p>
+            <p class="subtitle">青年大学习进入长期维护状态</p>
         </div>
     </header>
     
@@ -368,9 +368,7 @@
                 '2025-11-05'
             ];
             const upcomingDates = [ // 未更新（计划中）
-                '2025-11-12',
-                '2025-11-19',
-                '2025-11-26'
+                '2029-11-12',
             ];
             
             // 初始化日历
@@ -460,14 +458,14 @@
                     dayElement.addEventListener('click', function() {
                         if (dayOfWeek === 3) {
                             if (publishedDates.includes(dateString)) {
-                                alert(`青年大学习已更新，请前往学习页面学习`);
+                                alert(`青年大学习进入长期维护状态`);
                             } else if (upcomingDates.includes(dateString)) {
-                                alert(`青年大学习尚未更新，敬请期待`);
+                                alert(`青年大学习进入长期维护状态`);
                             } else {
-                                alert(`该天是青年大学习更新日，请关注后续通知`);
+                                alert(`青年大学习进入长期维护状态`);
                             }
                         } else {
-                            alert(`该天暂无更新安排，请关注后续番外更新预告`);
+                            alert(`青年大学习进入长期维护状态`);
                         }
                     });
                     
@@ -523,3 +521,4 @@
     </script>
 </body>
 </html>
+
